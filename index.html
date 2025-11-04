@@ -48,7 +48,6 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        /* Header */
         .header {
             background: linear-gradient(135deg, var(--darker), var(--dark));
             color: white;
@@ -99,7 +98,6 @@
             50% { opacity: 0.5; }
         }
 
-        /* Chat Area */
         .chat-area {
             flex: 1;
             padding: 24px;
@@ -161,7 +159,6 @@
             text-align: left;
         }
 
-        /* Input Area */
         .input-area {
             padding: 20px 24px;
             background: white;
@@ -250,7 +247,6 @@
             transform: none;
         }
 
-        /* Typing Indicator */
         .typing-indicator {
             display: flex;
             align-items: center;
@@ -285,7 +281,6 @@
             40% { transform: scale(1); opacity: 1; }
         }
 
-        /* Welcome Message */
         .welcome-message {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
@@ -313,7 +308,6 @@
             gap: 8px;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .chatbot-container {
                 height: 90vh;
@@ -341,7 +335,6 @@
             }
         }
 
-        /* Scrollbar */
         .chat-area::-webkit-scrollbar {
             width: 6px;
         }
@@ -362,7 +355,6 @@
 </head>
 <body>
     <div class="chatbot-container">
-        <!-- Header -->
         <div class="header">
             <div class="header-content">
                 <h1>
@@ -380,7 +372,6 @@
             </div>
         </div>
 
-        <!-- Chat Area -->
         <div class="chat-area" id="chat-area">
             <div class="welcome-message">
                 <h3><i class="fas fa-star"></i> Welcome to Your AI Assistant!</h3>
@@ -394,7 +385,6 @@
             </div>
         </div>
 
-        <!-- Input Area -->
         <div class="input-area">
             <div class="input-wrapper">
                 <textarea 
@@ -420,9 +410,9 @@
     </div>
 
     <script>
-        // API Configuration - WORKING URL
+        // API Configuration - UPDATED WORKING VERSION
         const API_KEY = "AIzaSyAt703CrJ4nQhLWEu18XD4mMP2kkEaDXY0";
-        const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${API_KEY}`;
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${API_KEY}`;
 
         // DOM Elements
         const chatArea = document.getElementById('chat-area');
@@ -454,12 +444,12 @@
             showTypingIndicator();
 
             try {
-                // Call Google Gemini API
+                // Call Google Gemini API - UPDATED MODEL
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({
                         contents: [{
@@ -501,7 +491,7 @@
 
             } catch (error) {
                 removeTypingIndicator();
-                addMessage(`I apologize, but I encountered an error while processing your request: ${error.message}`, 'ai');
+                addMessage(`I apologize, but I encountered an error: ${error.message}. Please try again.`, 'ai');
                 console.error('API Error:', error);
             } finally {
                 // Re-enable send button
