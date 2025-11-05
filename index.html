@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatNow - Real Code Verification</title>
+    <title>Converse - Meaningful Connections</title>
+    
+    <!-- Firebase Libraries -->
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    
     <!-- EmailJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
@@ -45,16 +48,19 @@
         }
 
         .logo h1 {
-            font-size: 36px;
-            background: linear-gradient(135deg, #4cc9f0, #4361ee);
+            font-size: 42px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 8px;
+            font-weight: 700;
+            letter-spacing: -1px;
         }
 
         .logo p {
             color: #a0a4b8;
             font-size: 16px;
+            font-style: italic;
         }
 
         .auth-tabs {
@@ -79,8 +85,8 @@
         }
 
         .auth-tab.active {
-            background: rgba(76, 201, 240, 0.15);
-            color: #4cc9f0;
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
             font-weight: 600;
         }
 
@@ -123,14 +129,14 @@
 
         .input-group input:focus {
             outline: none;
-            border-color: #4cc9f0;
+            border-color: #667eea;
             background: rgba(255, 255, 255, 0.08);
         }
 
         .auth-btn {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, #4cc9f0, #4361ee);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
             border-radius: 10px;
@@ -143,6 +149,7 @@
 
         .auth-btn:hover {
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
 
         .google-btn {
@@ -195,16 +202,18 @@
             padding: 12px;
             background: rgba(255, 107, 107, 0.1);
             border-radius: 8px;
+            border: 1px solid rgba(255, 107, 107, 0.2);
         }
 
         .success {
-            color: #4cc9f0;
+            color: #667eea;
             margin: 15px 0;
             text-align: center;
             font-size: 14px;
             padding: 12px;
-            background: rgba(76, 201, 240, 0.1);
+            background: rgba(102, 126, 234, 0.1);
             border-radius: 8px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
         }
 
         .verification-section {
@@ -220,12 +229,12 @@
             background: rgba(255, 255, 255, 0.05);
             padding: 25px;
             border-radius: 15px;
-            border: 2px solid rgba(76, 201, 240, 0.3);
+            border: 2px solid rgba(102, 126, 234, 0.3);
             text-align: center;
         }
 
         .verification-box h3 {
-            color: #4cc9f0;
+            color: #667eea;
             margin-bottom: 15px;
             font-size: 22px;
         }
@@ -244,17 +253,10 @@
             width: 100%;
         }
 
-        .loading {
-            display: none;
-            text-align: center;
-            color: #4cc9f0;
-            margin: 10px 0;
-        }
-
         .resend-btn {
             background: none;
             border: none;
-            color: #4cc9f0;
+            color: #667eea;
             cursor: pointer;
             text-decoration: underline;
             margin-top: 15px;
@@ -271,7 +273,7 @@
         }
 
         .user-info h3 {
-            color: #4cc9f0;
+            color: #667eea;
             margin-bottom: 15px;
             font-size: 22px;
         }
@@ -285,6 +287,7 @@
             cursor: pointer;
             font-weight: 500;
             transition: all 0.3s;
+            margin-top: 15px;
         }
 
         .logout-btn:hover {
@@ -311,8 +314,8 @@
 <body>
     <div class="container">
         <div class="logo">
-            <h1>💬 ChatNow</h1>
-            <p>Connect with friends securely</p>
+            <h1>💭 Converse</h1>
+            <p>Meaningful Connections</p>
         </div>
 
         <div id="authSection">
@@ -334,7 +337,7 @@
                         <button class="password-toggle" onclick="togglePassword('loginPassword')">👁️</button>
                     </div>
                 </div>
-                <button class="auth-btn" onclick="loginWithEmail()">Login to Account</button>
+                <button class="auth-btn" onclick="loginWithEmail()">Login to Converse</button>
                 
                 <div class="divider"><span>or continue with</span></div>
                 
@@ -353,7 +356,6 @@
 
             <!-- Signup Form -->
             <div class="auth-form" id="signupForm">
-                <!-- SIGNUP FORM -->
                 <div class="signup-form" id="mainSignupForm">
                     <div class="input-group">
                         <label for="firstName">First Name</label>
@@ -375,7 +377,7 @@
                         </div>
                     </div>
                     
-                    <button class="auth-btn" onclick="sendVerificationCode()">Create Account</button>
+                    <button class="auth-btn" onclick="sendVerificationCode()">Join Converse</button>
                     
                     <div class="divider"><span>or continue with</span></div>
                     
@@ -393,7 +395,7 @@
                     <div class="success" id="signupSuccess"></div>
                 </div>
 
-                <!-- VERIFICATION SECTION - Initially Hidden -->
+                <!-- Verification Section -->
                 <div class="verification-section" id="verificationSection">
                     <div class="verification-box">
                         <h3>🔐 Verify Your Email</h3>
@@ -404,7 +406,7 @@
                             <input type="text" id="verificationCode" class="otp-input" placeholder="000000" maxlength="6">
                         </div>
                         
-                        <button class="auth-btn" onclick="verifyAndCreateAccount()">Verify & Create Account</button>
+                        <button class="auth-btn" onclick="verifyAndCreateAccount()">Verify & Join Converse</button>
                         
                         <button class="resend-btn" onclick="resendVerificationCode()" id="resendBtn">Resend Code</button>
                         
@@ -417,7 +419,7 @@
 
         <!-- User Info Section -->
         <div class="user-info" id="userInfo">
-            <h3>Welcome to ChatNow! 👋</h3>
+            <h3>Welcome to Converse! 👋</h3>
             <p>You're successfully logged in</p>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
@@ -429,9 +431,10 @@
             apiKey: "AIzaSyA9wDKfj_u0HvH_eNHJl-mSvRxMpz7S4BA",
             authDomain: "chatapp-85150.firebaseapp.com",
             projectId: "chatapp-85150",
-            storageBucket: "chatapp-85150.appspot.com",
+            storageBucket: "chatapp-85150.firebasestorage.app",
             messagingSenderId: "336086592013",
-            appId: "1:336086592013:web:YOUR_APP_ID_HERE"
+            appId: "1:336086592013:web:7537e44138b9cf682f0344",
+            measurementId: "G-PBZMEMDETT"
         };
 
         // Initialize Firebase
@@ -453,17 +456,14 @@
             document.querySelector(`.auth-tab[onclick="showTab('${tabName}')"]`).classList.add('active');
             document.getElementById(tabName + 'Form').classList.add('active');
             
-            // Reset forms when switching tabs
             resetSignupForm();
             clearErrors();
         }
 
         function resetSignupForm() {
-            // Show main form, hide verification
             document.getElementById('mainSignupForm').style.display = 'block';
             document.getElementById('verificationSection').classList.remove('active');
             
-            // Clear inputs
             document.getElementById('firstName').value = '';
             document.getElementById('lastName').value = '';
             document.getElementById('signupEmail').value = '';
@@ -488,7 +488,7 @@
             }
         }
 
-        // STEP 1: Send Verification Code
+        // SEND VERIFICATION CODE - CORRECT TEMPLATE ID
         async function sendVerificationCode() {
             const firstName = document.getElementById('firstName').value;
             const lastName = document.getElementById('lastName').value;
@@ -512,13 +512,26 @@
 
             // Generate 6-digit code
             generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
-            
-            // Store user data for later use
             userData = { firstName, lastName, email, password };
 
             try {
-                // Send real email with code using EmailJS
-                await sendEmailCode(email, generatedCode);
+                // ✅ CORRECT VARIABLES AND TEMPLATE ID
+                const templateParams = {
+                    email: email,       // Matches {{email}} in template
+                    code: generatedCode // Matches {{code}} in template
+                };
+
+                console.log('Sending email to:', email);
+                console.log('Verification code:', generatedCode);
+
+                // ✅ CORRECT TEMPLATE ID: template_o1txkdr
+                const response = await emailjs.send(
+                    'service_ioi82xk', 
+                    'template_o1txkdr', // ✅ CORRECT TEMPLATE ID
+                    templateParams
+                );
+                
+                console.log('Email sent successfully!', response);
                 
                 // Hide main form and show verification section
                 document.getElementById('mainSignupForm').style.display = 'none';
@@ -526,39 +539,24 @@
                 document.getElementById('verificationMessage').textContent = 
                     `We've sent a 6-digit verification code to: ${email}`;
 
-                successDiv.textContent = 'Verification code sent successfully!';
+                successDiv.textContent = 'Verification code sent successfully! Check your email (including spam folder).';
 
             } catch (error) {
-                errorDiv.textContent = 'Failed to send verification code. Please try again.';
-                console.error('Email sending error:', error);
+                console.error('EmailJS Error Details:', error);
+                
+                // Fallback to popup with detailed error info
+                alert(`❌ Email service failed!\n\nError: ${error.text || error.message}\n\nBut you can use this code: ${generatedCode}\n\nEmail: ${email}`);
+                
+                document.getElementById('mainSignupForm').style.display = 'none';
+                document.getElementById('verificationSection').classList.add('active');
+                document.getElementById('verificationMessage').textContent = 
+                    `Email service failed, but you can use the code shown in popup for: ${email}`;
+                
+                document.getElementById('signupError').textContent = 'Email service failed, but you can use the code from popup';
             }
         }
 
-        // REAL EMAIL SENDING FUNCTION - CORRECTED
-        async function sendEmailCode(email, code) {
-            const templateParams = {
-                email: email  // Sirf yeh ek variable required hai
-            };
-
-            try {
-                const response = await emailjs.send(
-                    'service_ioi82xk', // Tumhara Service ID
-                    'one_time_password', // Template ID
-                    templateParams
-                );
-                console.log('Email sent successfully:', response);
-                
-                // DEMO: Alert show kardo code ke liye (testing ke liye)
-                alert(`DEMO: Verification Code: ${code}\n\nEmail sent to: ${email}`);
-                
-                return response;
-            } catch (error) {
-                console.error('EmailJS Error:', error);
-                throw error;
-            }
-        }
-
-        // STEP 2: Verify Code and Create Account
+        // VERIFY AND CREATE ACCOUNT
         async function verifyAndCreateAccount() {
             const code = document.getElementById('verificationCode').value;
             const errorDiv = document.getElementById('verifyError');
@@ -584,15 +582,19 @@
                 currentUser = userCredential.user;
 
                 // Save user data to Firestore
-                await db.collection('users').doc(currentUser.uid).set({
-                    firstName: firstName,
-                    lastName: lastName,
-                    email: email,
-                    emailVerified: true,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                try {
+                    await db.collection('users').doc(currentUser.uid).set({
+                        firstName: firstName,
+                        lastName: lastName,
+                        email: email,
+                        emailVerified: true,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } catch (firestoreError) {
+                    console.log('Firestore error, but user created in Auth');
+                }
 
-                successDiv.textContent = 'Account created successfully!';
+                successDiv.textContent = 'Account created successfully! 🎉';
                 
                 // Show success and redirect
                 setTimeout(() => {
@@ -612,13 +614,24 @@
                 // Generate new code
                 generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
                 
-                // Send new code
-                await sendEmailCode(email, generatedCode);
+                // Send new code via EmailJS
+                const templateParams = {
+                    email: email,
+                    code: generatedCode
+                };
+
+                await emailjs.send(
+                    'service_ioi82xk',
+                    'template_o1txkdr', // ✅ CORRECT TEMPLATE ID
+                    templateParams
+                );
                 
                 document.getElementById('verifySuccess').textContent = 'New code sent to your email!';
                 
             } catch (error) {
-                document.getElementById('verifyError').textContent = 'Failed to resend code';
+                // Fallback to popup
+                alert(`✅ NEW VERIFICATION CODE: ${generatedCode}\n\nEmail: ${email}\n\nUse this new code to verify`);
+                document.getElementById('verifySuccess').textContent = 'New code sent! Check popup.';
             }
         }
 
@@ -635,10 +648,16 @@
                 currentUser = userCredential.user;
 
                 // Get user data from Firestore
-                const userDoc = await db.collection('users').doc(currentUser.uid).get();
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
-                    showUserInfo(currentUser, `${userData.firstName} ${userData.lastName}`);
+                try {
+                    const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                    if (userDoc.exists) {
+                        const userData = userDoc.data();
+                        showUserInfo(currentUser, `${userData.firstName} ${userData.lastName}`);
+                    } else {
+                        showUserInfo(currentUser, currentUser.email);
+                    }
+                } catch (error) {
+                    showUserInfo(currentUser, currentUser.email);
                 }
                 
             } catch (error) {
@@ -655,13 +674,17 @@
                 currentUser = result.user;
                 
                 // Save/update user data in Firestore
-                await db.collection('users').doc(currentUser.uid).set({
-                    name: currentUser.displayName,
-                    email: currentUser.email,
-                    photoURL: currentUser.photoURL,
-                    emailVerified: true,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
+                try {
+                    await db.collection('users').doc(currentUser.uid).set({
+                        name: currentUser.displayName,
+                        email: currentUser.email,
+                        photoURL: currentUser.photoURL,
+                        emailVerified: true,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                } catch (error) {
+                    console.log('Firestore not accessible, but Google login successful');
+                }
 
                 showUserInfo(currentUser, currentUser.displayName);
                 
@@ -686,13 +709,17 @@
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUser = user;
-                db.collection('users').doc(user.uid).get().then(doc => {
-                    if (doc.exists) {
-                        const userData = doc.data();
-                        const name = userData.name || `${userData.firstName} ${userData.lastName}`;
-                        showUserInfo(user, name);
-                    }
-                });
+                try {
+                    db.collection('users').doc(user.uid).get().then(doc => {
+                        if (doc.exists) {
+                            const userData = doc.data();
+                            const name = userData.name || `${userData.firstName} ${userData.lastName}`;
+                            showUserInfo(user, name);
+                        }
+                    });
+                } catch (error) {
+                    showUserInfo(user, user.email);
+                }
             } else {
                 document.getElementById('authSection').style.display = 'block';
                 document.getElementById('userInfo').style.display = 'none';
@@ -711,6 +738,10 @@
                 const activeForm = document.querySelector('.auth-form.active');
                 if (activeForm.id === 'loginForm') {
                     loginWithEmail();
+                } else if (activeForm.id === 'signupForm' && document.getElementById('verificationSection').classList.contains('active')) {
+                    verifyAndCreateAccount();
+                } else if (activeForm.id === 'signupForm') {
+                    sendVerificationCode();
                 }
             }
         });
