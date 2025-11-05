@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatNow - One Page Verification</title>
+    <title>ChatNow - Smart Signup</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
@@ -78,6 +78,31 @@
             display: block;
         }
 
+        .continue-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .continue-btn {
+            flex: 1;
+            padding: 15px;
+            background: #333;
+            border: 2px solid #444;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .continue-btn.active {
+            background: #4ecdc4;
+            border-color: #4ecdc4;
+            color: #1a1a1a;
+            font-weight: bold;
+        }
+
         .input-group {
             margin-bottom: 15px;
         }
@@ -91,6 +116,64 @@
             color: white;
             font-size: 16px;
             margin-bottom: 8px;
+        }
+
+        /* Country Code Selector */
+        .phone-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .country-selector {
+            position: relative;
+            width: 120px;
+        }
+
+        .country-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #444;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+            cursor: pointer;
+        }
+
+        .country-flag {
+            margin-right: 8px;
+        }
+
+        .country-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: #333;
+            border: 2px solid #444;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+        }
+
+        .country-dropdown.active {
+            display: block;
+        }
+
+        .country-option {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #444;
+        }
+
+        .country-option:hover {
+            background: #444;
+        }
+
+        .phone-input {
+            flex: 1;
         }
 
         .auth-btn {
@@ -141,7 +224,6 @@
             font-size: 14px;
         }
 
-        /* Verification Section - SAME PAGE PE */
         .verification-box {
             background: #333;
             padding: 20px;
@@ -161,17 +243,6 @@
             letter-spacing: 8px;
             font-weight: bold;
             margin: 10px 0;
-        }
-
-        .verify-btn {
-            background: #4ecdc4;
-            color: #1a1a1a;
-            border: none;
-            padding: 10px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
         }
 
         .user-info {
@@ -198,7 +269,7 @@
     <div class="container">
         <div class="logo">
             <h1>💬 ChatNow</h1>
-            <p>Signup & Verify on Same Page</p>
+            <p>Continue with Email or Phone</p>
         </div>
 
         <!-- Authentication Section -->
@@ -219,35 +290,67 @@
                 <div class="error" id="loginError"></div>
             </div>
 
-            <!-- Signup Form - VERIFICATION SAME PAGE PE -->
+            <!-- Signup Form -->
             <div class="auth-form" id="signupForm">
-                <div class="input-group">
-                    <input type="text" id="firstName" placeholder="First Name" required>
-                    <input type="text" id="lastName" placeholder="Last Name" required>
-                    <input type="text" id="username" placeholder="Username" required>
-                    <input type="email" id="signupEmail" placeholder="Email" required>
-                    <input type="tel" id="phoneNumber" placeholder="Phone Number (+91...)" required>
-                    <input type="password" id="signupPassword" placeholder="Password (min. 6 characters)" required>
+                <!-- Continue Options -->
+                <div class="continue-options">
+                    <button class="continue-btn active" onclick="showSignupMethod('email')">Continue with Email</button>
+                    <button class="continue-btn" onclick="showSignupMethod('phone')">Continue with Phone</button>
                 </div>
-                
+
+                <!-- Email Signup -->
+                <div class="signup-method active" id="emailSignup">
+                    <div class="input-group">
+                        <input type="text" id="firstName" placeholder="First Name" required>
+                        <input type="text" id="lastName" placeholder="Last Name" required>
+                        <input type="text" id="username" placeholder="Username" required>
+                        <input type="email" id="signupEmail" placeholder="Email" required>
+                        <input type="password" id="signupPassword" placeholder="Password (min. 6 characters)" required>
+                    </div>
+                </div>
+
+                <!-- Phone Signup -->
+                <div class="signup-method" id="phoneSignup">
+                    <div class="input-group">
+                        <input type="text" id="phoneFirstName" placeholder="First Name" required>
+                        <input type="text" id="phoneLastName" placeholder="Last Name" required>
+                        <input type="text" id="phoneUsername" placeholder="Username" required>
+                        
+                        <!-- Country Code Selector -->
+                        <div class="phone-input-group">
+                            <div class="country-selector">
+                                <div class="country-select" onclick="toggleCountryDropdown()">
+                                    <span class="country-flag" id="selectedFlag">🇵🇰</span>
+                                    <span id="selectedCode">+92</span>
+                                </div>
+                                <div class="country-dropdown" id="countryDropdown">
+                                    <!-- Countries will be loaded here -->
+                                </div>
+                            </div>
+                            <input type="tel" id="phoneNumber" class="phone-input" placeholder="Phone Number" required>
+                        </div>
+                        
+                        <input type="password" id="phonePassword" placeholder="Password (min. 6 characters)" required>
+                    </div>
+                </div>
+
                 <button class="auth-btn" onclick="signup()">Create Account</button>
                 <button class="google-btn" onclick="loginWithGoogle()">Sign up with Google</button>
                 
                 <div class="error" id="signupError"></div>
                 <div class="success" id="signupSuccess"></div>
 
-                <!-- VERIFICATION BOX - SAME PAGE PE -->
+                <!-- Verification Box -->
                 <div class="verification-box" id="verificationBox">
                     <h3>📧 Verify Your Account</h3>
-                    <p>We sent 6-digit codes to your email and phone</p>
+                    <p id="verificationMessage">We sent a 6-digit verification code</p>
                     
                     <div class="input-group">
-                        <input type="text" id="emailCode" class="otp-input" placeholder="Email Code" maxlength="6">
-                        <input type="text" id="phoneCode" class="otp-input" placeholder="Phone Code" maxlength="6">
+                        <input type="text" id="verificationCode" class="otp-input" placeholder="000000" maxlength="6">
                     </div>
                     
-                    <button class="verify-btn" onclick="verifyCodes()">Verify & Complete Signup</button>
-                    <button class="google-btn" onclick="resendCodes()" style="background:#666; margin-top:10px;">Resend Codes</button>
+                    <button class="auth-btn" onclick="verifyCode()">Verify & Complete Signup</button>
+                    <button class="google-btn" onclick="resendCode()" style="background:#666; margin-top:10px;">Resend Code</button>
                     
                     <div class="error" id="verifyError"></div>
                     <div class="success" id="verifySuccess"></div>
@@ -281,8 +384,73 @@
         const db = firebase.firestore();
 
         let currentUser = null;
-        let generatedEmailCode = '';
-        let generatedPhoneCode = '';
+        let generatedCode = '';
+        let currentSignupMethod = 'email';
+        let selectedCountry = { code: '+92', flag: '🇵🇰', name: 'Pakistan' };
+
+        // Country Data
+        const countries = [
+            { code: '+1', flag: '🇺🇸', name: 'United States' },
+            { code: '+91', flag: '🇮🇳', name: 'India' },
+            { code: '+92', flag: '🇵🇰', name: 'Pakistan' },
+            { code: '+44', flag: '🇬🇧', name: 'United Kingdom' },
+            { code: '+86', flag: '🇨🇳', name: 'China' },
+            { code: '+49', flag: '🇩🇪', name: 'Germany' },
+            { code: '+33', flag: '🇫🇷', name: 'France' },
+            { code: '+81', flag: '🇯🇵', name: 'Japan' },
+            { code: '+7', flag: '🇷🇺', name: 'Russia' },
+            { code: '+55', flag: '🇧🇷', name: 'Brazil' },
+            { code: '+61', flag: '🇦🇺', name: 'Australia' },
+            { code: '+27', flag: '🇿🇦', name: 'South Africa' },
+            { code: '+20', flag: '🇪🇬', name: 'Egypt' },
+            { code: '+34', flag: '🇪🇸', name: 'Spain' },
+            { code: '+39', flag: '🇮🇹', name: 'Italy' }
+        ];
+
+        // Auto-detect country based on IP
+        function detectCountry() {
+            // This is a simplified version - in real app, use IP geolocation API
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            
+            if (timezone.includes('Asia/Karachi')) {
+                selectedCountry = { code: '+92', flag: '🇵🇰', name: 'Pakistan' };
+            } else if (timezone.includes('America')) {
+                selectedCountry = { code: '+1', flag: '🇺🇸', name: 'United States' };
+            } else if (timezone.includes('India')) {
+                selectedCountry = { code: '+91', flag: '🇮🇳', name: 'India' };
+            }
+            
+            updateCountrySelector();
+        }
+
+        // Initialize country selector
+        function initCountrySelector() {
+            const dropdown = document.getElementById('countryDropdown');
+            countries.forEach(country => {
+                const option = document.createElement('div');
+                option.className = 'country-option';
+                option.innerHTML = `${country.flag} ${country.name} (${country.code})`;
+                option.onclick = () => selectCountry(country);
+                dropdown.appendChild(option);
+            });
+            
+            detectCountry();
+        }
+
+        function updateCountrySelector() {
+            document.getElementById('selectedFlag').textContent = selectedCountry.flag;
+            document.getElementById('selectedCode').textContent = selectedCountry.code;
+        }
+
+        function toggleCountryDropdown() {
+            document.getElementById('countryDropdown').classList.toggle('active');
+        }
+
+        function selectCountry(country) {
+            selectedCountry = country;
+            updateCountrySelector();
+            document.getElementById('countryDropdown').classList.remove('active');
+        }
 
         // Tab switching
         function showTab(tabName) {
@@ -291,6 +459,20 @@
             
             document.querySelector(`.auth-tab[onclick="showTab('${tabName}')"]`).classList.add('active');
             document.getElementById(tabName + 'Form').classList.add('active');
+            
+            clearErrors();
+            hideVerification();
+        }
+
+        // Show signup method
+        function showSignupMethod(method) {
+            currentSignupMethod = method;
+            
+            document.querySelectorAll('.continue-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.signup-method').forEach(form => form.classList.remove('active'));
+            
+            document.querySelector(`.continue-btn[onclick="showSignupMethod('${method}')"]`).classList.add('active');
+            document.getElementById(method + 'Signup').classList.add('active');
             
             clearErrors();
             hideVerification();
@@ -308,7 +490,8 @@
             document.getElementById('verificationBox').classList.remove('active');
         }
 
-        function showVerification() {
+        function showVerification(message) {
+            document.getElementById('verificationMessage').textContent = message;
             document.getElementById('verificationBox').classList.add('active');
         }
 
@@ -319,95 +502,129 @@
 
         // Signup function
         async function signup() {
-            const firstName = document.getElementById('firstName').value;
-            const lastName = document.getElementById('lastName').value;
-            const username = document.getElementById('username').value;
-            const email = document.getElementById('signupEmail').value;
-            const phone = document.getElementById('phoneNumber').value;
-            const password = document.getElementById('signupPassword').value;
-            
+            let firstName, lastName, username, email, phone, password;
             const errorDiv = document.getElementById('signupError');
             const successDiv = document.getElementById('signupSuccess');
 
             clearErrors();
+
+            if (currentSignupMethod === 'email') {
+                firstName = document.getElementById('firstName').value;
+                lastName = document.getElementById('lastName').value;
+                username = document.getElementById('username').value;
+                email = document.getElementById('signupEmail').value;
+                phone = '';
+                password = document.getElementById('signupPassword').value;
+            } else {
+                firstName = document.getElementById('phoneFirstName').value;
+                lastName = document.getElementById('phoneLastName').value;
+                username = document.getElementById('phoneUsername').value;
+                email = '';
+                phone = selectedCountry.code + document.getElementById('phoneNumber').value;
+                password = document.getElementById('phonePassword').value;
+            }
 
             if (password.length < 6) {
                 errorDiv.textContent = 'Password must be at least 6 characters';
                 return;
             }
 
-            if (!phone.startsWith('+')) {
-                errorDiv.textContent = 'Phone number must start with country code (+91...)';
-                return;
-            }
-
             try {
-                // Step 1: Create user account
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                currentUser = userCredential.user;
-
-                // Step 2: Generate verification codes
-                generatedEmailCode = generateCode();
-                generatedPhoneCode = generateCode();
-
-                // Step 3: Show verification section
-                showVerification();
-                successDiv.textContent = `Verification codes sent! Check your email and phone.`;
-
-                // Step 4: Simulate sending codes (in real app, these would be sent via email/SMS)
-                console.log('📧 Email Code:', generatedEmailCode);
-                console.log('📱 Phone Code:', generatedPhoneCode);
-                
-                alert(`DEMO: Email Code: ${generatedEmailCode}, Phone Code: ${generatedPhoneCode}`);
+                if (currentSignupMethod === 'email') {
+                    // Email signup
+                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                    currentUser = userCredential.user;
+                    
+                    generatedCode = generateCode();
+                    showVerification(`We sent a 6-digit verification code to your email: ${email}`);
+                    successDiv.textContent = 'Verification code sent to your email!';
+                    
+                    console.log('📧 Email Code:', generatedCode);
+                    alert(`DEMO: Email Verification Code: ${generatedCode}`);
+                    
+                } else {
+                    // Phone signup
+                    generatedCode = generateCode();
+                    showVerification(`We sent a 6-digit verification code to your phone: ${phone}`);
+                    successDiv.textContent = 'Verification code sent to your phone!';
+                    
+                    console.log('📱 Phone Code:', generatedCode);
+                    alert(`DEMO: Phone Verification Code: ${generatedCode}`);
+                }
 
             } catch (error) {
                 errorDiv.textContent = error.message;
             }
         }
 
-        // Verify codes
-        async function verifyCodes() {
-            const emailCode = document.getElementById('emailCode').value;
-            const phoneCode = document.getElementById('phoneCode').value;
+        // Verify code
+        async function verifyCode() {
+            const code = document.getElementById('verificationCode').value;
             const errorDiv = document.getElementById('verifyError');
             const successDiv = document.getElementById('verifySuccess');
 
             clearErrors();
 
-            if (!emailCode || !phoneCode) {
-                errorDiv.textContent = 'Please enter both verification codes';
+            if (!code || code.length !== 6) {
+                errorDiv.textContent = 'Please enter a valid 6-digit code';
                 return;
             }
 
-            if (emailCode !== generatedEmailCode || phoneCode !== generatedPhoneCode) {
-                errorDiv.textContent = 'Invalid verification codes';
+            if (code !== generatedCode) {
+                errorDiv.textContent = 'Invalid verification code';
                 return;
             }
 
             try {
-                // Save user data to Firestore
-                const firstName = document.getElementById('firstName').value;
-                const lastName = document.getElementById('lastName').value;
-                const username = document.getElementById('username').value;
-                const email = document.getElementById('signupEmail').value;
-                const phone = document.getElementById('phoneNumber').value;
+                let firstName, lastName, username, email, phone, password;
 
-                await db.collection('users').doc(currentUser.uid).set({
-                    firstName: firstName,
-                    lastName: lastName,
-                    username: username,
-                    email: email,
-                    phone: phone,
-                    emailVerified: true,
-                    phoneVerified: true,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                if (currentSignupMethod === 'email') {
+                    firstName = document.getElementById('firstName').value;
+                    lastName = document.getElementById('lastName').value;
+                    username = document.getElementById('username').value;
+                    email = document.getElementById('signupEmail').value;
+                    phone = '';
+                    password = document.getElementById('signupPassword').value;
+                    
+                    // For email, user is already created
+                    await db.collection('users').doc(currentUser.uid).set({
+                        firstName: firstName,
+                        lastName: lastName,
+                        username: username,
+                        email: email,
+                        phone: phone,
+                        emailVerified: true,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                } else {
+                    firstName = document.getElementById('phoneFirstName').value;
+                    lastName = document.getElementById('phoneLastName').value;
+                    username = document.getElementById('phoneUsername').value;
+                    email = '';
+                    phone = selectedCountry.code + document.getElementById('phoneNumber').value;
+                    password = document.getElementById('phonePassword').value;
+                    
+                    // For phone, create user with email/password (using phone as email)
+                    const phoneEmail = `phone_${phone}@chatapp.com`;
+                    const userCredential = await auth.createUserWithEmailAndPassword(phoneEmail, password);
+                    currentUser = userCredential.user;
+                    
+                    await db.collection('users').doc(currentUser.uid).set({
+                        firstName: firstName,
+                        lastName: lastName,
+                        username: username,
+                        email: phoneEmail,
+                        phone: phone,
+                        phoneVerified: true,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
 
                 successDiv.textContent = 'Account verified successfully!';
                 
                 setTimeout(() => {
-                    showUserInfo(currentUser, `${firstName} ${lastName}`, email, phone);
+                    showUserInfo(currentUser, `${firstName} ${lastName}`, email || phone, phone || 'Not set');
                 }, 2000);
 
             } catch (error) {
@@ -415,16 +632,12 @@
             }
         }
 
-        // Resend codes
-        function resendCodes() {
-            generatedEmailCode = generateCode();
-            generatedPhoneCode = generateCode();
-            
-            console.log('📧 New Email Code:', generatedEmailCode);
-            console.log('📱 New Phone Code:', generatedPhoneCode);
-            
-            alert(`NEW CODES - Email: ${generatedEmailCode}, Phone: ${generatedPhoneCode}`);
-            document.getElementById('verifySuccess').textContent = 'New codes sent!';
+        // Resend code
+        function resendCode() {
+            generatedCode = generateCode();
+            console.log('🔄 New Code:', generatedCode);
+            alert(`NEW CODE: ${generatedCode}`);
+            document.getElementById('verifySuccess').textContent = 'New code sent!';
         }
 
         // Login function
@@ -439,13 +652,10 @@
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
                 currentUser = userCredential.user;
                 
-                // Get user data
                 const userDoc = await db.collection('users').doc(currentUser.uid).get();
                 if (userDoc.exists) {
                     const userData = userDoc.data();
-                    showUserInfo(currentUser, `${userData.firstName} ${userData.lastName}`, email, userData.phone);
-                } else {
-                    showUserInfo(currentUser, 'User', email, 'Not set');
+                    showUserInfo(currentUser, `${userData.firstName} ${userData.lastName}`, userData.email, userData.phone);
                 }
                 
             } catch (error) {
@@ -466,8 +676,7 @@
                     email: currentUser.email,
                     photoURL: currentUser.photoURL,
                     emailVerified: true,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
 
                 showUserInfo(currentUser, currentUser.displayName, currentUser.email, 'Not set');
@@ -478,11 +687,11 @@
         }
 
         // Show user info
-        function showUserInfo(user, name, email, phone) {
+        function showUserInfo(user, name, contact, phone) {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('userInfo').style.display = 'block';
             document.getElementById('userName').textContent = name;
-            document.getElementById('userEmail').textContent = email;
+            document.getElementById('userEmail').textContent = contact;
             document.getElementById('userPhone').textContent = phone;
         }
 
@@ -498,7 +707,7 @@
                 db.collection('users').doc(user.uid).get().then(doc => {
                     if (doc.exists) {
                         const userData = doc.data();
-                        showUserInfo(user, `${userData.firstName} ${userData.lastName}`, user.email, userData.phone);
+                        showUserInfo(user, `${userData.firstName} ${userData.lastName}`, userData.email, userData.phone);
                     }
                 });
             } else {
@@ -508,14 +717,15 @@
             }
         });
 
-        // Auto-format OTP inputs
-        document.getElementById('emailCode').addEventListener('input', function(e) {
+        // Auto-format OTP input
+        document.getElementById('verificationCode').addEventListener('input', function(e) {
             this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
         });
-        
-        document.getElementById('phoneCode').addEventListener('input', function(e) {
-            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
-        });
+
+        // Initialize on load
+        window.onload = function() {
+            initCountrySelector();
+        };
     </script>
 </body>
 </html>
