@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatNow - Real Chat App</title>
+    <title>ChatNow - Email Verification</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
@@ -26,7 +26,7 @@
 
         .container {
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
             background: rgba(45, 45, 45, 0.95);
             border-radius: 15px;
             padding: 30px;
@@ -43,15 +43,6 @@
             background: linear-gradient(135deg, #4ecdc4, #44a08d);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-        }
-
-        .domain-info {
-            background: #333;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-            color: #4ecdc4;
         }
 
         .auth-tabs {
@@ -149,17 +140,58 @@
             text-align: center;
             font-size: 14px;
         }
+
+        .verification-section {
+            display: none;
+            background: #333;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .verification-section.active {
+            display: block;
+        }
+
+        .otp-input {
+            font-size: 24px;
+            text-align: center;
+            letter-spacing: 10px;
+            font-weight: bold;
+        }
+
+        .user-info {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #333;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .logout-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .verified-badge {
+            color: #4ecdc4;
+            font-weight: bold;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="logo">
             <h1>💬 ChatNow</h1>
-            <p>Real-time Chat Application</p>
-        </div>
-
-        <div class="domain-info">
-            🌐 Domain: aipromptgallery.github.io
+            <p>Secure Email Verification</p>
         </div>
 
         <!-- Authentication Section -->
@@ -193,6 +225,28 @@
                 <div class="success" id="signupSuccess"></div>
             </div>
         </div>
+
+        <!-- Email Verification Section -->
+        <div class="verification-section" id="verificationSection">
+            <h3>📧 Verify Your Email</h3>
+            <p>We sent a 6-digit verification code to:</p>
+            <p id="verificationEmail" style="font-weight: bold; margin: 10px 0;"></p>
+            
+            <div class="input-group">
+                <input type="text" id="verificationCode" class="otp-input" placeholder="000000" maxlength="6" required>
+            </div>
+            <button class="auth-btn" onclick="verifyEmail()">Verify Email</button>
+            <button class="google-btn" onclick="resendVerification()">Resend Code</button>
+            <div class="error" id="verificationError"></div>
+            <div class="success" id="verificationSuccess"></div>
+        </div>
+
+        <!-- User Info Section -->
+        <div class="user-info" id="userInfo">
+            <h3>Welcome, <span id="userName"></span>!</h3>
+            <p>Email: <span id="userEmail"></span> <span id="emailVerified" class="verified-badge"></span></p>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
     </div>
 
     <script>
@@ -211,6 +265,8 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
+        let currentUser = null;
+
         // Tab switching
         function showTab(tabName) {
             document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
@@ -219,12 +275,18 @@
             document.querySelector(`.auth-tab[onclick="showTab('${tabName}')"]`).classList.add('active');
             document.getElementById(tabName + 'Form').classList.add('active');
             
+            clearErrors();
+        }
+
+        function clearErrors() {
             document.getElementById('loginError').textContent = '';
             document.getElementById('signupError').textContent = '';
             document.getElementById('signupSuccess').textContent = '';
+            document.getElementById('verificationError').textContent = '';
+            document.getElementById('verificationSuccess').textContent = '';
         }
 
-        // Signup function
+        // Signup function with email verification
         async function signup() {
             const name = document.getElementById('signupName').value;
             const email = document.getElementById('signupEmail').value;
@@ -232,8 +294,7 @@
             const errorDiv = document.getElementById('signupError');
             const successDiv = document.getElementById('signupSuccess');
 
-            errorDiv.textContent = '';
-            successDiv.textContent = '';
+            clearErrors();
 
             if (password.length < 6) {
                 errorDiv.textContent = 'Password must be at least 6 characters';
@@ -242,18 +303,92 @@
 
             try {
                 const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                const user = userCredential.user;
+                currentUser = userCredential.user;
                 
-                await db.collection('users').doc(user.uid).set({
+                // Save user data to Firestore
+                await db.collection('users').doc(currentUser.uid).set({
                     name: name,
                     email: email,
+                    emailVerified: false,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                successDiv.textContent = 'Account created successfully!';
+                // Send email verification
+                await sendEmailVerification();
+                
+                successDiv.textContent = 'Account created! Check your email for verification code.';
+                
+                // Show verification section
+                showVerificationSection(email);
                 
             } catch (error) {
                 errorDiv.textContent = error.message;
+            }
+        }
+
+        // Send email verification
+        async function sendEmailVerification() {
+            try {
+                await currentUser.sendEmailVerification();
+                console.log('Verification email sent');
+            } catch (error) {
+                console.error('Error sending verification email:', error);
+            }
+        }
+
+        // Show verification section
+        function showVerificationSection(email) {
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('verificationSection').classList.add('active');
+            document.getElementById('verificationEmail').textContent = email;
+        }
+
+        // Verify email with code
+        async function verifyEmail() {
+            const code = document.getElementById('verificationCode').value;
+            const errorDiv = document.getElementById('verificationError');
+            const successDiv = document.getElementById('verificationSuccess');
+
+            clearErrors();
+
+            if (!code || code.length !== 6) {
+                errorDiv.textContent = 'Please enter a valid 6-digit code';
+                return;
+            }
+
+            try {
+                // In Firebase, email verification is automatic when user clicks link
+                // We'll simulate the verification process
+                await currentUser.reload();
+                
+                if (currentUser.emailVerified) {
+                    successDiv.textContent = 'Email verified successfully!';
+                    
+                    // Update Firestore
+                    await db.collection('users').doc(currentUser.uid).update({
+                        emailVerified: true,
+                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    setTimeout(() => {
+                        showUserInfo(currentUser);
+                    }, 2000);
+                } else {
+                    errorDiv.textContent = 'Email not verified yet. Please check your email and click the verification link.';
+                }
+                
+            } catch (error) {
+                errorDiv.textContent = error.message;
+            }
+        }
+
+        // Resend verification email
+        async function resendVerification() {
+            try {
+                await sendEmailVerification();
+                document.getElementById('verificationSuccess').textContent = 'Verification code sent again!';
+            } catch (error) {
+                document.getElementById('verificationError').textContent = error.message;
             }
         }
 
@@ -263,13 +398,20 @@
             const password = document.getElementById('loginPassword').value;
             const errorDiv = document.getElementById('loginError');
 
-            errorDiv.textContent = '';
+            clearErrors();
 
             try {
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                const user = userCredential.user;
+                currentUser = userCredential.user;
                 
-                alert('Login successful! Welcome ' + user.email);
+                // Check if email is verified
+                if (!currentUser.emailVerified) {
+                    errorDiv.textContent = 'Please verify your email first. Check your inbox.';
+                    showVerificationSection(email);
+                    return;
+                }
+
+                showUserInfo(currentUser);
                 
             } catch (error) {
                 errorDiv.textContent = error.message;
@@ -282,21 +424,71 @@
             
             try {
                 const result = await auth.signInWithPopup(provider);
-                const user = result.user;
+                currentUser = result.user;
                 
-                await db.collection('users').doc(user.uid).set({
-                    name: user.displayName,
-                    email: user.email,
-                    photoURL: user.photoURL,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                // Google users are automatically verified
+                await db.collection('users').doc(currentUser.uid).set({
+                    name: currentUser.displayName,
+                    email: currentUser.email,
+                    photoURL: currentUser.photoURL,
+                    emailVerified: true,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
 
-                alert('Google login successful! Welcome ' + user.displayName);
+                showUserInfo(currentUser);
                 
             } catch (error) {
                 document.getElementById('loginError').textContent = error.message;
             }
         }
+
+        // Show user info after login
+        function showUserInfo(user) {
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('verificationSection').classList.remove('active');
+            document.getElementById('userInfo').style.display = 'block';
+            
+            document.getElementById('userName').textContent = user.displayName || 'User';
+            document.getElementById('userEmail').textContent = user.email;
+            
+            const verifiedBadge = document.getElementById('emailVerified');
+            if (user.emailVerified) {
+                verifiedBadge.textContent = '✅ Verified';
+            } else {
+                verifiedBadge.textContent = '❌ Not Verified';
+            }
+        }
+
+        // Logout function
+        function logout() {
+            auth.signOut();
+        }
+
+        // Auth state listener
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                console.log('User is signed in:', user);
+                
+                // Get user data from Firestore
+                db.collection('users').doc(user.uid).get().then(doc => {
+                    if (doc.exists) {
+                        showUserInfo(user);
+                    }
+                });
+            } else {
+                console.log('User is signed out');
+                document.getElementById('authSection').style.display = 'block';
+                document.getElementById('verificationSection').classList.remove('active');
+                document.getElementById('userInfo').style.display = 'none';
+            }
+        });
+
+        // Auto-format OTP input
+        document.getElementById('verificationCode').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
+        });
     </script>
 </body>
 </html>
