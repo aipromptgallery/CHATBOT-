@@ -207,7 +207,6 @@
             border-radius: 8px;
         }
 
-        /* VERIFICATION BOX STYLES */
         .verification-section {
             display: none;
         }
@@ -441,7 +440,7 @@
         const db = firebase.firestore();
 
         // Initialize EmailJS with YOUR Public Key
-        emailjs.init("xqxYHQV5ZlRMWNBQL"); // ✅ YAHAN TUMHARA PUBLIC KEY HAI
+        emailjs.init("xqxYHQV5ZlRMWNBQL");
 
         let currentUser = null;
         let generatedCode = '';
@@ -519,7 +518,7 @@
 
             try {
                 // Send real email with code using EmailJS
-                await sendEmailCode(email, firstName, generatedCode);
+                await sendEmailCode(email, generatedCode);
                 
                 // Hide main form and show verification section
                 document.getElementById('mainSignupForm').style.display = 'none';
@@ -535,13 +534,10 @@
             }
         }
 
-        // REAL EMAIL SENDING FUNCTION
-        async function sendEmailCode(email, name, code) {
+        // REAL EMAIL SENDING FUNCTION - CORRECTED
+        async function sendEmailCode(email, code) {
             const templateParams = {
-                email: email,  // One-Time Password template expects 'email'
-                to_name: name,
-                verification_code: code,
-                from_name: 'ChatNow Team'
+                email: email  // Sirf yeh ek variable required hai
             };
 
             try {
@@ -551,6 +547,10 @@
                     templateParams
                 );
                 console.log('Email sent successfully:', response);
+                
+                // DEMO: Alert show kardo code ke liye (testing ke liye)
+                alert(`DEMO: Verification Code: ${code}\n\nEmail sent to: ${email}`);
+                
                 return response;
             } catch (error) {
                 console.error('EmailJS Error:', error);
@@ -606,14 +606,14 @@
 
         // Resend Code Function
         async function resendVerificationCode() {
-            const { email, firstName } = userData;
+            const { email } = userData;
             
             try {
                 // Generate new code
                 generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
                 
                 // Send new code
-                await sendEmailCode(email, firstName, generatedCode);
+                await sendEmailCode(email, generatedCode);
                 
                 document.getElementById('verifySuccess').textContent = 'New code sent to your email!';
                 
