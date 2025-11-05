@@ -353,7 +353,7 @@
             </div>
 
             <!-- Signup Form -->
-            <div class="auth-form active" id="signupForm">
+            <div class="auth-form" id="signupForm">
                 <!-- SIGNUP FORM -->
                 <div class="signup-form" id="mainSignupForm">
                     <div class="input-group">
@@ -440,8 +440,8 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // Initialize EmailJS (Tumhara EmailJS setup karo)
-        emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
+        // Initialize EmailJS with YOUR Public Key
+        emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); // Tumhara public key yahan daalo
 
         let currentUser = null;
         let generatedCode = '';
@@ -527,6 +527,8 @@
                 document.getElementById('verificationMessage').textContent = 
                     `We've sent a 6-digit verification code to: ${email}`;
 
+                successDiv.textContent = 'Verification code sent successfully!';
+
             } catch (error) {
                 errorDiv.textContent = 'Failed to send verification code. Please try again.';
                 console.error('Email sending error:', error);
@@ -536,7 +538,7 @@
         // REAL EMAIL SENDING FUNCTION
         async function sendEmailCode(email, name, code) {
             const templateParams = {
-                to_email: email,
+                email: email,  // One-Time Password template expects 'email'
                 to_name: name,
                 verification_code: code,
                 from_name: 'ChatNow Team'
@@ -544,8 +546,8 @@
 
             try {
                 const response = await emailjs.send(
-                    'service_ioi82xk', // Tumhara service ID
-                    'YOUR_TEMPLATE_ID', // Tumhara template ID
+                    'service_ioi82xk', // Tumhara Service ID
+                    'one_time_password', // Template ID
                     templateParams
                 );
                 console.log('Email sent successfully:', response);
