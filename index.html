@@ -441,18 +441,60 @@
 
             <!-- Login Form -->
             <div class="auth-form active" id="loginForm">
-                <div class="input-group">
-                    <label for="loginEmail">Email Address</label>
-                    <input type="email" id="loginEmail" placeholder="Enter your email" required>
+                <div class="auth-method-selector">
+                    <button class="auth-method-btn active" onclick="showLoginMethod('email')">
+                        <span>📧</span> Email Login
+                    </button>
+                    <button class="auth-method-btn" onclick="showLoginMethod('phone')">
+                        <span>📱</span> Phone Login
+                    </button>
                 </div>
-                <div class="input-group">
-                    <label for="loginPassword">Password</label>
-                    <div class="password-input">
-                        <input type="password" id="loginPassword" placeholder="Enter your password" required>
-                        <button class="password-toggle" onclick="togglePassword('loginPassword')">👁️</button>
+
+                <!-- Email Login -->
+                <div class="login-method active" id="emailLogin">
+                    <div class="input-group">
+                        <label for="loginEmail">Email Address</label>
+                        <input type="email" id="loginEmail" placeholder="Enter your email" required>
                     </div>
+                    <div class="input-group">
+                        <label for="loginPassword">Password</label>
+                        <div class="password-input">
+                            <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                            <button class="password-toggle" onclick="togglePassword('loginPassword')">👁️</button>
+                        </div>
+                    </div>
+                    <button class="auth-btn" onclick="loginWithEmail()">Login to Account</button>
                 </div>
-                <button class="auth-btn" onclick="login()">Login to Account</button>
+
+                <!-- Phone Login -->
+                <div class="login-method" id="phoneLogin">
+                    <div class="input-group">
+                        <label for="phoneLoginNumber">Phone Number</label>
+                        <div class="phone-input-group">
+                            <div class="country-selector">
+                                <div class="country-select" onclick="toggleCountryDropdown('login')">
+                                    <span>
+                                        <span class="country-flag" id="loginSelectedFlag">🇵🇰</span>
+                                        <span id="loginSelectedCode">+92</span>
+                                    </span>
+                                    <span>▼</span>
+                                </div>
+                                <div class="country-dropdown" id="loginCountryDropdown">
+                                    <!-- Countries will be loaded here -->
+                                </div>
+                            </div>
+                            <input type="tel" id="phoneLoginNumber" class="phone-input" placeholder="Phone number" required>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="phoneLoginPassword">Password</label>
+                        <div class="password-input">
+                            <input type="password" id="phoneLoginPassword" placeholder="Enter your password" required>
+                            <button class="password-toggle" onclick="togglePassword('phoneLoginPassword')">👁️</button>
+                        </div>
+                    </div>
+                    <button class="auth-btn" onclick="loginWithPhone()">Login with Phone</button>
+                </div>
                 
                 <div class="divider"><span>or continue with</span></div>
                 
@@ -473,10 +515,10 @@
             <div class="auth-form" id="signupForm">
                 <div class="auth-method-selector">
                     <button class="auth-method-btn active" onclick="showSignupMethod('email')">
-                        <span>📧</span> Email
+                        <span>📧</span> Email Signup
                     </button>
                     <button class="auth-method-btn" onclick="showSignupMethod('phone')">
-                        <span>📱</span> Phone
+                        <span>📱</span> Phone Signup
                     </button>
                 </div>
 
@@ -505,6 +547,7 @@
                             <button class="password-toggle" onclick="togglePassword('signupPassword')">👁️</button>
                         </div>
                     </div>
+                    <button class="auth-btn" onclick="signupWithEmail()">Create Account</button>
                 </div>
 
                 <!-- Phone Signup -->
@@ -526,14 +569,14 @@
                         <label for="phoneNumber">Phone Number</label>
                         <div class="phone-input-group">
                             <div class="country-selector">
-                                <div class="country-select" onclick="toggleCountryDropdown()">
+                                <div class="country-select" onclick="toggleCountryDropdown('signup')">
                                     <span>
-                                        <span class="country-flag" id="selectedFlag">🇵🇰</span>
-                                        <span id="selectedCode">+92</span>
+                                        <span class="country-flag" id="signupSelectedFlag">🇵🇰</span>
+                                        <span id="signupSelectedCode">+92</span>
                                     </span>
                                     <span>▼</span>
                                 </div>
-                                <div class="country-dropdown" id="countryDropdown">
+                                <div class="country-dropdown" id="signupCountryDropdown">
                                     <!-- Countries will be loaded here -->
                                 </div>
                             </div>
@@ -548,9 +591,8 @@
                             <button class="password-toggle" onclick="togglePassword('phonePassword')">👁️</button>
                         </div>
                     </div>
+                    <button class="auth-btn" onclick="signupWithPhone()">Create Account</button>
                 </div>
-
-                <button class="auth-btn" onclick="signup()">Create Account</button>
                 
                 <div class="divider"><span>or continue with</span></div>
                 
@@ -629,6 +671,7 @@
         let currentUser = null;
         let generatedCode = '';
         let currentSignupMethod = 'email';
+        let currentLoginMethod = 'email';
         let selectedCountry = { code: '+92', flag: '🇵🇰', name: 'Pakistan' };
 
         // Country Data
@@ -650,15 +693,25 @@
             { code: '+39', flag: '🇮🇹', name: 'Italy' }
         ];
 
-        // Initialize country selector
-        function initCountrySelector() {
-            const dropdown = document.getElementById('countryDropdown');
+        // Initialize country selectors
+        function initCountrySelectors() {
+            const loginDropdown = document.getElementById('loginCountryDropdown');
+            const signupDropdown = document.getElementById('signupCountryDropdown');
+            
             countries.forEach(country => {
-                const option = document.createElement('div');
-                option.className = 'country-option';
-                option.innerHTML = `${country.flag} ${country.name} (${country.code})`;
-                option.onclick = () => selectCountry(country);
-                dropdown.appendChild(option);
+                // For login
+                const loginOption = document.createElement('div');
+                loginOption.className = 'country-option';
+                loginOption.innerHTML = `${country.flag} ${country.name} (${country.code})`;
+                loginOption.onclick = () => selectCountry(country, 'login');
+                loginDropdown.appendChild(loginOption);
+                
+                // For signup
+                const signupOption = document.createElement('div');
+                signupOption.className = 'country-option';
+                signupOption.innerHTML = `${country.flag} ${country.name} (${country.code})`;
+                signupOption.onclick = () => selectCountry(country, 'signup');
+                signupDropdown.appendChild(signupOption);
             });
             
             detectCountry();
@@ -676,22 +729,25 @@
                 selectedCountry = { code: '+91', flag: '🇮🇳', name: 'India' };
             }
             
-            updateCountrySelector();
+            updateCountrySelectors();
         }
 
-        function updateCountrySelector() {
-            document.getElementById('selectedFlag').textContent = selectedCountry.flag;
-            document.getElementById('selectedCode').textContent = selectedCountry.code;
+        function updateCountrySelectors() {
+            document.getElementById('loginSelectedFlag').textContent = selectedCountry.flag;
+            document.getElementById('loginSelectedCode').textContent = selectedCountry.code;
+            document.getElementById('signupSelectedFlag').textContent = selectedCountry.flag;
+            document.getElementById('signupSelectedCode').textContent = selectedCountry.code;
         }
 
-        function toggleCountryDropdown() {
-            document.getElementById('countryDropdown').classList.toggle('active');
+        function toggleCountryDropdown(type) {
+            document.getElementById(`${type}CountryDropdown`).classList.toggle('active');
         }
 
-        function selectCountry(country) {
+        function selectCountry(country, type) {
             selectedCountry = country;
-            updateCountrySelector();
-            document.getElementById('countryDropdown').classList.remove('active');
+            document.getElementById(`${type}SelectedFlag`).textContent = country.flag;
+            document.getElementById(`${type}SelectedCode`).textContent = country.code;
+            document.getElementById(`${type}CountryDropdown`).classList.remove('active');
         }
 
         // Tab switching
@@ -704,6 +760,19 @@
             
             clearErrors();
             hideVerification();
+        }
+
+        // Show login method
+        function showLoginMethod(method) {
+            currentLoginMethod = method;
+            
+            document.querySelectorAll('.auth-method-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.login-method').forEach(form => form.classList.remove('active'));
+            
+            document.querySelector(`.auth-method-btn[onclick="showLoginMethod('${method}')"]`).classList.add('active');
+            document.getElementById(method + 'Login').classList.add('active');
+            
+            clearErrors();
         }
 
         // Show signup method
@@ -752,32 +821,21 @@
             return Math.floor(100000 + Math.random() * 900000).toString();
         }
 
-        // Signup function
-        async function signup() {
-            let firstName, lastName, username, email, phone, password;
+        // Email Signup function
+        async function signupWithEmail() {
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            
             const errorDiv = document.getElementById('signupError');
             const successDiv = document.getElementById('signupSuccess');
 
             clearErrors();
 
-            if (currentSignupMethod === 'email') {
-                firstName = document.getElementById('firstName').value;
-                lastName = document.getElementById('lastName').value;
-                username = document.getElementById('username').value;
-                email = document.getElementById('signupEmail').value;
-                phone = '';
-                password = document.getElementById('signupPassword').value;
-            } else {
-                firstName = document.getElementById('phoneFirstName').value;
-                lastName = document.getElementById('phoneLastName').value;
-                username = document.getElementById('phoneUsername').value;
-                email = '';
-                phone = selectedCountry.code + document.getElementById('phoneNumber').value;
-                password = document.getElementById('phonePassword').value;
-            }
-
             // Basic validation
-            if (!firstName || !lastName || !username || !password) {
+            if (!firstName || !lastName || !username || !email || !password) {
                 errorDiv.textContent = 'Please fill in all required fields';
                 return;
             }
@@ -788,27 +846,54 @@
             }
 
             try {
-                if (currentSignupMethod === 'email') {
-                    // Email signup
-                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                    currentUser = userCredential.user;
-                    
-                    generatedCode = generateCode();
-                    showVerification(`We've sent a 6-digit verification code to your email: ${email}`);
-                    successDiv.textContent = 'Verification code sent to your email!';
-                    
-                    console.log('📧 Email Code:', generatedCode);
-                    alert(`DEMO: Email Verification Code: ${generatedCode}`);
-                    
-                } else {
-                    // Phone signup
-                    generatedCode = generateCode();
-                    showVerification(`We've sent a 6-digit verification code to your phone: ${phone}`);
-                    successDiv.textContent = 'Verification code sent to your phone!';
-                    
-                    console.log('📱 Phone Code:', generatedCode);
-                    alert(`DEMO: Phone Verification Code: ${generatedCode}`);
-                }
+                // Email signup
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                currentUser = userCredential.user;
+                
+                generatedCode = generateCode();
+                showVerification(`We've sent a 6-digit verification code to your email: ${email}`);
+                successDiv.textContent = 'Verification code sent to your email!';
+                
+                console.log('📧 Email Code:', generatedCode);
+                alert(`DEMO: Email Verification Code: ${generatedCode}`);
+                
+            } catch (error) {
+                errorDiv.textContent = error.message;
+            }
+        }
+
+        // Phone Signup function
+        async function signupWithPhone() {
+            const firstName = document.getElementById('phoneFirstName').value;
+            const lastName = document.getElementById('phoneLastName').value;
+            const username = document.getElementById('phoneUsername').value;
+            const phone = selectedCountry.code + document.getElementById('phoneNumber').value;
+            const password = document.getElementById('phonePassword').value;
+            
+            const errorDiv = document.getElementById('signupError');
+            const successDiv = document.getElementById('signupSuccess');
+
+            clearErrors();
+
+            // Basic validation
+            if (!firstName || !lastName || !username || !phone || !password) {
+                errorDiv.textContent = 'Please fill in all required fields';
+                return;
+            }
+
+            if (password.length < 6) {
+                errorDiv.textContent = 'Password must be at least 6 characters';
+                return;
+            }
+
+            try {
+                // Phone signup
+                generatedCode = generateCode();
+                showVerification(`We've sent a 6-digit verification code to your phone: ${phone}`);
+                successDiv.textContent = 'Verification code sent to your phone!';
+                
+                console.log('📱 Phone Code:', generatedCode);
+                alert(`DEMO: Phone Verification Code: ${generatedCode}`);
 
             } catch (error) {
                 errorDiv.textContent = error.message;
@@ -834,15 +919,12 @@
             }
 
             try {
-                let firstName, lastName, username, email, phone, password;
-
                 if (currentSignupMethod === 'email') {
-                    firstName = document.getElementById('firstName').value;
-                    lastName = document.getElementById('lastName').value;
-                    username = document.getElementById('username').value;
-                    email = document.getElementById('signupEmail').value;
-                    phone = '';
-                    password = document.getElementById('signupPassword').value;
+                    const firstName = document.getElementById('firstName').value;
+                    const lastName = document.getElementById('lastName').value;
+                    const username = document.getElementById('username').value;
+                    const email = document.getElementById('signupEmail').value;
+                    const password = document.getElementById('signupPassword').value;
                     
                     // For email, user is already created
                     await db.collection('users').doc(currentUser.uid).set({
@@ -850,18 +932,23 @@
                         lastName: lastName,
                         username: username,
                         email: email,
-                        phone: phone,
+                        phone: '',
                         emailVerified: true,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
+                    successDiv.textContent = 'Account verified successfully! Redirecting...';
+                    
+                    setTimeout(() => {
+                        showUserInfo(currentUser, `${firstName} ${lastName}`, email, 'Not set');
+                    }, 2000);
+
                 } else {
-                    firstName = document.getElementById('phoneFirstName').value;
-                    lastName = document.getElementById('phoneLastName').value;
-                    username = document.getElementById('phoneUsername').value;
-                    email = '';
-                    phone = selectedCountry.code + document.getElementById('phoneNumber').value;
-                    password = document.getElementById('phonePassword').value;
+                    const firstName = document.getElementById('phoneFirstName').value;
+                    const lastName = document.getElementById('phoneLastName').value;
+                    const username = document.getElementById('phoneUsername').value;
+                    const phone = selectedCountry.code + document.getElementById('phoneNumber').value;
+                    const password = document.getElementById('phonePassword').value;
                     
                     // For phone, create user with email/password (using phone as email)
                     const phoneEmail = `phone_${phone}@chatapp.com`;
@@ -877,13 +964,13 @@
                         phoneVerified: true,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
-                }
 
-                successDiv.textContent = 'Account verified successfully! Redirecting...';
-                
-                setTimeout(() => {
-                    showUserInfo(currentUser, `${firstName} ${lastName}`, email || phone, phone || 'Not set');
-                }, 2000);
+                    successDiv.textContent = 'Account verified successfully! Redirecting...';
+                    
+                    setTimeout(() => {
+                        showUserInfo(currentUser, `${firstName} ${lastName}`, phoneEmail, phone);
+                    }, 2000);
+                }
 
             } catch (error) {
                 errorDiv.textContent = error.message;
@@ -898,8 +985,8 @@
             alert(`NEW CODE: ${generatedCode}`);
         }
 
-        // Login function
-        async function login() {
+        // Email Login function
+        async function loginWithEmail() {
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
             const errorDiv = document.getElementById('loginError');
@@ -908,6 +995,31 @@
 
             try {
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                currentUser = userCredential.user;
+                
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    showUserInfo(currentUser, `${userData.firstName} ${userData.lastName}`, userData.email, userData.phone);
+                }
+                
+            } catch (error) {
+                errorDiv.textContent = error.message;
+            }
+        }
+
+        // Phone Login function
+        async function loginWithPhone() {
+            const phone = selectedCountry.code + document.getElementById('phoneLoginNumber').value;
+            const password = document.getElementById('phoneLoginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+
+            clearErrors();
+
+            try {
+                // For phone login, we use the phone number as email
+                const phoneEmail = `phone_${phone}@chatapp.com`;
+                const userCredential = await auth.signInWithEmailAndPassword(phoneEmail, password);
                 currentUser = userCredential.user;
                 
                 const userDoc = await db.collection('users').doc(currentUser.uid).get();
@@ -982,7 +1094,7 @@
 
         // Initialize on load
         window.onload = function() {
-            initCountrySelector();
+            initCountrySelectors();
         };
     </script>
 </body>
