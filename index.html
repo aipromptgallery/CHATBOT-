@@ -3,550 +3,300 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LegiForce AI | Working Chatbot</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>ChatNow - Real Chat App</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, #0f172a, #1e293b);
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
             color: white;
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
         }
 
-        .chatbot-container {
+        .container {
             width: 100%;
-            max-width: 900px;
-            height: 90vh;
-            background: rgba(30, 41, 59, 0.9);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            padding: 25px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 400px;
+            background: rgba(45, 45, 45, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid #444;
         }
 
         .logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 10px;
-        }
-
-        .logo-icon {
-            width: 50px;
-            height: 50px;
-            background: white;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: #6366f1;
-        }
-
-        .logo-text h1 {
-            font-size: 28px;
-            font-weight: 800;
-            margin-bottom: 5px;
-        }
-
-        .logo-text p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .status {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: #10b981;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Chat Area */
-        .chat-area {
-            flex: 1;
-            padding: 25px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            background: rgba(15, 23, 42, 0.5);
-        }
-
-        .welcome-message {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            padding: 25px;
-            border-radius: 18px;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 30px;
         }
 
-        .welcome-message h3 {
-            font-size: 20px;
-            margin-bottom: 10px;
+        .logo h1 {
+            font-size: 32px;
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .domain-info {
+            background: #333;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #4ecdc4;
+        }
+
+        .auth-tabs {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            margin-bottom: 30px;
+            background: #333;
+            border-radius: 10px;
+            padding: 5px;
         }
 
-        .message {
-            max-width: 75%;
-            padding: 18px 22px;
-            border-radius: 20px;
-            line-height: 1.5;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .user-message {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            color: white;
-            margin-left: auto;
-            border-bottom-right-radius: 8px;
-        }
-
-        .ai-message {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-bottom-left-radius: 8px;
-        }
-
-        .timestamp {
-            font-size: 12px;
-            opacity: 0.7;
-            margin-top: 8px;
-            text-align: right;
-        }
-
-        .ai-message .timestamp {
-            text-align: left;
-        }
-
-        .typing-indicator {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 18px 22px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            max-width: 140px;
-            font-size: 14px;
-            color: #94a3b8;
-        }
-
-        .typing-dots {
-            display: flex;
-            gap: 4px;
-        }
-
-        .typing-dots span {
-            width: 6px;
-            height: 6px;
-            background: #94a3b8;
-            border-radius: 50%;
-            animation: typing 1.4s infinite ease-in-out;
-        }
-
-        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
-
-        @keyframes typing {
-            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
-            40% { transform: scale(1); opacity: 1; }
-        }
-
-        /* Input Area */
-        .input-area {
-            padding: 25px;
-            background: rgba(30, 41, 59, 0.9);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            gap: 15px;
-            align-items: flex-end;
-        }
-
-        .input-wrapper {
+        .auth-tab {
             flex: 1;
-            position: relative;
-        }
-
-        #user-input {
-            width: 100%;
-            padding: 18px 50px 18px 22px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 25px;
-            outline: none;
-            font-size: 16px;
-            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            background: transparent;
+            border: none;
             color: white;
-            resize: none;
-            min-height: 60px;
-            max-height: 120px;
-            transition: all 0.3s ease;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 16px;
         }
 
-        #user-input::placeholder {
-            color: #94a3b8;
+        .auth-tab.active {
+            background: #4ecdc4;
+            color: #1a1a1a;
+            font-weight: bold;
         }
 
-        #user-input:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        .auth-form {
+            display: none;
         }
 
-        #send-btn {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        .auth-form.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #444;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
             color: white;
             border: none;
-            padding: 18px 25px;
-            border-radius: 25px;
-            cursor: pointer;
+            border-radius: 8px;
             font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            min-width: 120px;
-            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: transform 0.2s;
         }
 
-        #send-btn:hover {
+        .auth-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
         }
 
-        #send-btn:active {
-            transform: translateY(0);
+        .google-btn {
+            width: 100%;
+            padding: 12px;
+            background: #db4437;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
         }
 
-        #send-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
+        .google-btn:hover {
+            transform: translateY(-2px);
         }
 
-        /* Scrollbar */
-        .chat-area::-webkit-scrollbar {
-            width: 6px;
+        .error {
+            color: #ff6b6b;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 14px;
         }
 
-        .chat-area::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-        }
-
-        .chat-area::-webkit-scrollbar-thumb {
-            background: #6366f1;
-            border-radius: 3px;
-        }
-
-        @media (max-width: 768px) {
-            .chatbot-container {
-                height: 95vh;
-                border-radius: 15px;
-            }
-            
-            .header {
-                padding: 20px;
-            }
-            
-            .logo-text h1 {
-                font-size: 24px;
-            }
-            
-            .message {
-                max-width: 85%;
-            }
-            
-            .chat-area {
-                padding: 20px;
-            }
-            
-            .input-area {
-                padding: 20px;
-            }
+        .success {
+            color: #4ecdc4;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
-    <div class="chatbot-container">
-        <!-- Header -->
-        <div class="header">
-            <div class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <div class="logo-text">
-                    <h1>LegiForce AI</h1>
-                    <p>Advanced AI Assistant</p>
-                </div>
-            </div>
-            <div class="status">
-                <div class="status-dot"></div>
-                <span>Online & Ready to Assist</span>
-            </div>
+    <div class="container">
+        <div class="logo">
+            <h1>💬 ChatNow</h1>
+            <p>Real-time Chat Application</p>
         </div>
 
-        <!-- Chat Area -->
-        <div class="chat-area" id="chat-area">
-            <div class="welcome-message">
-                <h3><i class="fas fa-star"></i> Welcome to LegiForce AI</h3>
-                <p>Your powerful AI assistant. Ask me anything - I'm here to help!</p>
-            </div>
+        <div class="domain-info">
+            🌐 Domain: aipromptgallery.github.io
         </div>
 
-        <!-- Input Area -->
-        <div class="input-area">
-            <div class="input-wrapper">
-                <textarea 
-                    id="user-input" 
-                    placeholder="Type your message here..." 
-                    rows="1"
-                    autocomplete="off"
-                ></textarea>
+        <!-- Authentication Section -->
+        <div id="authSection">
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="showTab('login')">Login</button>
+                <button class="auth-tab" onclick="showTab('signup')">Sign Up</button>
             </div>
-            <button id="send-btn">
-                <i class="fas fa-paper-plane"></i>
-                Send
-            </button>
+
+            <!-- Login Form -->
+            <div class="auth-form active" id="loginForm">
+                <div class="input-group">
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                </div>
+                <button class="auth-btn" onclick="login()">Login</button>
+                <button class="google-btn" onclick="loginWithGoogle()">Login with Google</button>
+                <div class="error" id="loginError"></div>
+            </div>
+
+            <!-- Signup Form -->
+            <div class="auth-form" id="signupForm">
+                <div class="input-group">
+                    <input type="text" id="signupName" placeholder="Full Name" required>
+                    <input type="email" id="signupEmail" placeholder="Email" required>
+                    <input type="password" id="signupPassword" placeholder="Password (min. 6 characters)" required>
+                </div>
+                <button class="auth-btn" onclick="signup()">Create Account</button>
+                <button class="google-btn" onclick="loginWithGoogle()">Sign up with Google</button>
+                <div class="error" id="signupError"></div>
+                <div class="success" id="signupSuccess"></div>
+            </div>
         </div>
     </div>
 
     <script>
-        // API Configuration - Using working endpoint
-        const API_KEY = "AIzaSyAt703CrJ4nQhLWEu18XD4mMP2kkEaDXY0";
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA9wDKfj_u0HvH_eNHJl-mSvRxMpz7S4BA",
+            authDomain: "chatapp-85150.firebaseapp.com",
+            projectId: "chatapp-85150",
+            storageBucket: "chatapp-85150.appspot.com",
+            messagingSenderId: "336086592013",
+            appId: "1:336086592013:web:YOUR_APP_ID_HERE"
+        };
 
-        // DOM Elements
-        const chatArea = document.getElementById('chat-area');
-        const userInput = document.getElementById('user-input');
-        const sendBtn = document.getElementById('send-btn');
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-        // Auto-resize textarea
-        userInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
-
-        // Send message function
-        async function sendMessage() {
-            const message = userInput.value.trim();
+        // Tab switching
+        function showTab(tabName) {
+            document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
             
-            if (!message) return;
+            document.querySelector(`.auth-tab[onclick="showTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(tabName + 'Form').classList.add('active');
+            
+            document.getElementById('loginError').textContent = '';
+            document.getElementById('signupError').textContent = '';
+            document.getElementById('signupSuccess').textContent = '';
+        }
 
-            // Disable send button
-            sendBtn.disabled = true;
-            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        // Signup function
+        async function signup() {
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const errorDiv = document.getElementById('signupError');
+            const successDiv = document.getElementById('signupSuccess');
 
-            // Add user message to chat
-            addMessage(message, 'user');
-            userInput.value = '';
-            userInput.style.height = 'auto';
+            errorDiv.textContent = '';
+            successDiv.textContent = '';
 
-            // Show typing indicator
-            showTypingIndicator();
+            if (password.length < 6) {
+                errorDiv.textContent = 'Password must be at least 6 characters';
+                return;
+            }
 
             try {
-                // Call Google Gemini API
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{
-                                text: message
-                            }]
-                        }],
-                        generationConfig: {
-                            temperature: 0.7,
-                            topK: 40,
-                            topP: 0.95,
-                            maxOutputTokens: 1024,
-                        }
-                    })
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                await db.collection('users').doc(user.uid).set({
+                    name: name,
+                    email: email,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                if (!response.ok) {
-                    throw new Error(`API Error: ${response.status}`);
-                }
-
-                const data = await response.json();
+                successDiv.textContent = 'Account created successfully!';
                 
-                // Remove typing indicator
-                removeTypingIndicator();
-
-                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                    const aiResponse = data.candidates[0].content.parts[0].text;
-                    addMessage(aiResponse, 'ai');
-                } else {
-                    throw new Error('No response from AI');
-                }
-
             } catch (error) {
-                removeTypingIndicator();
-                console.error('Error:', error);
+                errorDiv.textContent = error.message;
+            }
+        }
+
+        // Login function
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+
+            errorDiv.textContent = '';
+
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
                 
-                // Try alternative API endpoint
-                try {
-                    const altResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': 'Bearer gsk_your_groq_key_here',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            messages: [{ role: 'user', content: message }],
-                            model: 'llama3-8b-8192'
-                        })
-                    });
-                    
-                    if (altResponse.ok) {
-                        const altData = await altResponse.json();
-                        addMessage(altData.choices[0].message.content, 'ai');
-                    } else {
-                        throw new Error('All APIs failed');
-                    }
-                } catch (altError) {
-                    // Final fallback
-                    const fallbacks = [
-                        "I'm here to help! Could you please rephrase your question?",
-                        "I understand you're looking for assistance. Let me think about that...",
-                        "Thanks for your message! I'm processing your request.",
-                        "I appreciate your question. Let me provide you with the best answer I can."
-                    ];
-                    const randomResponse = fallbacks[Math.floor(Math.random() * fallbacks.length)];
-                    addMessage(randomResponse, 'ai');
-                }
-            } finally {
-                // Re-enable send button
-                sendBtn.disabled = false;
-                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send';
+                alert('Login successful! Welcome ' + user.email);
+                
+            } catch (error) {
+                errorDiv.textContent = error.message;
             }
         }
 
-        // Add message to chat
-        function addMessage(text, sender) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}-message`;
+        // Google Login
+        async function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
             
-            const messageContent = document.createElement('div');
-            messageContent.innerHTML = text.replace(/\n/g, '<br>');
-            
-            const timestamp = document.createElement('div');
-            timestamp.className = 'timestamp';
-            timestamp.textContent = new Date().toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: true 
-            });
-            
-            messageDiv.appendChild(messageContent);
-            messageDiv.appendChild(timestamp);
-            chatArea.appendChild(messageDiv);
-            
-            // Scroll to bottom
-            chatArea.scrollTop = chatArea.scrollHeight;
-        }
+            try {
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                
+                await db.collection('users').doc(user.uid).set({
+                    name: user.displayName,
+                    email: user.email,
+                    photoURL: user.photoURL,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
 
-        // Show typing indicator
-        function showTypingIndicator() {
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'typing-indicator';
-            typingDiv.id = 'typing-indicator';
-            
-            typingDiv.innerHTML = `
-                <div>AI is thinking</div>
-                <div class="typing-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            `;
-            
-            chatArea.appendChild(typingDiv);
-            chatArea.scrollTop = chatArea.scrollHeight;
-        }
-
-        // Remove typing indicator
-        function removeTypingIndicator() {
-            const typingIndicator = document.getElementById('typing-indicator');
-            if (typingIndicator) {
-                typingIndicator.remove();
+                alert('Google login successful! Welcome ' + user.displayName);
+                
+            } catch (error) {
+                document.getElementById('loginError').textContent = error.message;
             }
         }
-
-        // Event listeners
-        sendBtn.addEventListener('click', sendMessage);
-        
-        userInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-
-        // Focus on input when page loads
-        userInput.focus();
-
-        // Add welcome message timestamp
-        const welcomeTimestamp = document.createElement('div');
-        welcomeTimestamp.className = 'timestamp';
-        welcomeTimestamp.textContent = new Date().toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
-            minute: '2-digit',
-            hour12: true 
-        });
-        document.querySelector('.welcome-message').appendChild(welcomeTimestamp);
     </script>
 </body>
 </html>
